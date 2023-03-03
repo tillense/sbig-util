@@ -46,17 +46,29 @@ int sbig_cfw_get_info (sbig_t *sb, CFW_MODEL_SELECT *model,
     return e;
 }
 
-int sbig_cfw_goto (sbig_t *sb, CFW_POSITION position)
+int sbig_cfw_init (sbig_t *sb, CFW_ERROR *cfwerr)
+{
+    CFWParams in = { .cfwModel = CFWSEL_AUTO, .cfwCommand = CFWC_INIT };
+    CFWResults out;
+    int e = sb->fun (CC_CFW, &in, &out);
+    if (e == CE_CFW_ERROR)
+        *cfwerr = out.cfwError;
+    return e;
+}
+
+int sbig_cfw_goto (sbig_t *sb, CFW_POSITION position, CFW_ERROR *cfwerr)
 {
     CFWParams in = { .cfwModel = CFWSEL_AUTO, .cfwCommand = CFWC_GOTO,
                      .cfwParam1 = position };
     CFWResults out;
     int e = sb->fun (CC_CFW, &in, &out);
     /* FIXME: if e == CE_CFW_ERROR, check out.cfwError */
+    if (e == CE_CFW_ERROR)
+        *cfwerr = out.cfwError;
     return e;
 }
 
-int sbig_cfw_query (sbig_t *sb, CFW_STATUS *status, CFW_POSITION *position)
+int sbig_cfw_query (sbig_t *sb, CFW_STATUS *status, CFW_POSITION *position, CFW_ERROR *cfwerr)
 {
     CFWParams in = { .cfwModel = CFWSEL_AUTO, .cfwCommand = CFWC_QUERY };
     CFWResults out;
@@ -64,6 +76,8 @@ int sbig_cfw_query (sbig_t *sb, CFW_STATUS *status, CFW_POSITION *position)
     if (e == CE_NO_ERROR) {
         *status = out.cfwStatus;
         *position = out.cfwPosition; /* unknown == 0 */
+    } else if (e == CE_CFW_ERROR) {
+        *cfwerr = out.cfwError;
     }
     /* FIXME: if e == CE_CFW_ERROR, check out.cfwError */
     return e;
@@ -102,6 +116,32 @@ const char *sbig_strcfw (CFW_MODEL_SELECT type)
     for (i = 0; i < max; i++)
         if (dtab[i].type == type)
             return dtab[i].desc;
+    return "unknown";
+}
+
+typedef struct {
+    CFW_ERROR err;
+    const char *msg;
+} errtab_t;
+
+static errtab_t etab[] = {
+    { CFWE_NONE,              "No Error" },
+    { CFWE_BUSY,              "Device busy" },
+    { CFWE_BAD_COMMAND,       "Bad command" },
+    { CFWE_CAL_ERROR,         "Calibration error" },
+    { CFWE_MOTOR_TIMEOUT,     "Motor timeout" },
+    { CFWE_BAD_MODEL,         "Bad device model" },
+    { CFWE_DEVICE_NOT_CLOSED, "Device not closed" },
+    { CFWE_DEVICE_NOT_OPEN,   "Device not open" },
+    { CFWE_I2C_ERROR,         "I2C bus error" },
+};
+
+const char *sbig_cfw_errmsg (CFW_ERROR err)
+{
+    int i, max = sizeof (etab) / sizeof (etab[0]);
+    for (i = 0; i < max; i ++)
+        if (etab[i].err == err)
+	    return etab[i].msg;
     return "unknown";
 }
 

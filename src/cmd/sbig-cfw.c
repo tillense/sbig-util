@@ -38,6 +38,7 @@
 
 void cfw_query (sbig_t *sb, int ac, char **av);
 void cfw_goto (sbig_t *sb, int ac, char **av);
+void cfw_init (sbig_t *sb, int ac, char **av);
 
 #define OPTIONS "h"
 static const struct option longopts[] = {
@@ -49,6 +50,7 @@ void usage (void)
 {
     fprintf (stderr,
 "Usage: sbig-cfw query\n"
+"       sbig-cfw init \n"
 "       sbig-cfw goto N\n"
 );
     exit (1);
@@ -94,6 +96,8 @@ int main (int argc, char *argv[])
         cfw_query (sb, argc - optind, argv + optind);
     else if (!strcmp (cmd, "goto"))
         cfw_goto (sb, argc - optind, argv + optind);
+    else if (!strcmp (cmd, "init"))
+        cfw_init (sb, argc - optind, argv + optind);
     else
         usage ();
 
@@ -110,15 +114,22 @@ void cfw_goto (sbig_t *sb, int ac, char **av)
     int e;
     CFW_STATUS status;
     CFW_POSITION position, actual;
+    CFW_ERROR cfwerr;
 
     if (ac != 1)
         usage ();
     position = strtoul (av[0], NULL, 10);
+    msg ("moving CFW to position %d ...", position);
 
-    if ((e = sbig_cfw_goto (sb, position)) != CE_NO_ERROR)
-        msg_exit ("sbig_cfw_goto: %s", sbig_get_error_string (sb, e));
+    if ((e = sbig_cfw_goto (sb, position, &cfwerr)) != CE_NO_ERROR) {
+        if (e == CE_CFW_ERROR) {
+            msg_exit ("CFW filter operation failed: cfwError = %d", cfwerr);
+	} else {
+            msg_exit ("sbig_cfw_goto: %s", sbig_get_error_string (sb, e));
+        }
+    }
     do {
-        if ((e = sbig_cfw_query (sb, &status, &actual)) != CE_NO_ERROR)
+        if ((e = sbig_cfw_query (sb, &status, &actual, &cfwerr)) != CE_NO_ERROR)
             msg_exit ("sbig_cfw_query: %s", sbig_get_error_string (sb, e));
         if (status == CFWS_BUSY)
             usleep (1000*100);
@@ -129,17 +140,39 @@ void cfw_goto (sbig_t *sb, int ac, char **av)
         msg ("position: %d", actual);
 }
 
+void cfw_init (sbig_t *sb, int ac, char **av)
+{
+    int e;
+    CFW_ERROR cfwerr;
+    if (ac != 0)
+        msg_exit ("init takes no arguments");
+    msg ("initializing CFW ...");
+    if ((e = sbig_cfw_init (sb, &cfwerr)) != CE_NO_ERROR) {
+        if (e == CE_CFW_ERROR) {
+            msg_exit ("CFW initialization failed: cfwError = %d", cfwerr);
+        } else {
+            msg_exit ("sbig_cfw_init: %s:", sbig_get_error_string (sb, e));
+	}
+    }
+}
+
 void cfw_query (sbig_t *sb, int ac, char **av)
 {
     int e;
     CFW_STATUS status;
     CFW_POSITION position;
+    CFW_ERROR cfwerr;
     if (ac != 0)
-        msg_exit ("show takes no arguments");
-    if ((e = sbig_cfw_query (sb, &status, &position)) != CE_NO_ERROR)
-        msg_exit ("sbig_cfw_query: %s", sbig_get_error_string (sb, e));
-    msg ("status:   %s", status == CFWS_UNKNOWN ? "unknown" :
-                         status == CFWS_IDLE ? "idle" : "busy");
+        msg_exit ("query takes no arguments");
+    if ((e = sbig_cfw_query (sb, &status, &position, &cfwerr)) != CE_NO_ERROR) {
+        if (e == CE_CFW_ERROR) {
+            msg_exit ("CFW query failed: cfwError = %d", cfwerr);
+	} else {
+            msg_exit ("sbig_cfw_query: %s:", sbig_get_error_string (sb, e));
+	    msg ("status:   %s", status == CFWS_UNKNOWN ? "unkown" :
+                                 status == CFWS_IDLE ? "idle" : "busy");
+        }
+    }
     if (position == CFWP_UNKNOWN)
         msg ("position: unknown");
     else

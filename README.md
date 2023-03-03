@@ -43,6 +43,10 @@ To build sbig-util, run
 make
 sudo make install  # install to /usr/local
 ```
+If you want to cleanup the source tree after build, run
+```
+make maintainer-clean
+```
 
 ### Configuring sbig-util
 

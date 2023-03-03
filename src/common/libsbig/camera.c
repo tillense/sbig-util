@@ -415,19 +415,20 @@ int sbig_ccd_start_exposure (sbig_ccd_t *ccd, unsigned short flags,
                                 || ccd->info0.cameraType == ST237_CAMERA) {
         CFW_STATUS status;
         int e;
+	CFW_ERROR cfwerr;
 
-        e = sbig_cfw_query (ccd->sb, &status, &ccd->last_cfw_position);
+        e = sbig_cfw_query (ccd->sb, &status, &ccd->last_cfw_position, &cfwerr);
         if (e != CE_NO_ERROR)
             return e;
         if (ccd->shutter_mode == SC_CLOSE_SHUTTER
                                             && ccd->last_cfw_position != 2) {
-            if ((e = sbig_cfw_goto (ccd->sb, 2)) != CE_NO_ERROR)
+            if ((e = sbig_cfw_goto (ccd->sb, 2, &cfwerr)) != CE_NO_ERROR)
                 return e;
             ccd->restore_cfw_position = 1;
         }
         else if (ccd->shutter_mode == SC_OPEN_SHUTTER
                                             && ccd->last_cfw_position == 2) {
-            if ((e = sbig_cfw_goto (ccd->sb, 1)) != CE_NO_ERROR)
+            if ((e = sbig_cfw_goto (ccd->sb, 1, &cfwerr)) != CE_NO_ERROR)
                 return e;
             ccd->restore_cfw_position = 1;
         }
@@ -452,9 +453,10 @@ int sbig_ccd_get_exposure_status (sbig_ccd_t *ccd, PAR_COMMAND_STATUS *sp)
 int sbig_ccd_end_exposure (sbig_ccd_t *ccd, ushort flags)
 {
     EndExposureParams in = { .ccd = ccd->ccd | flags };
+    CFW_ERROR cfwerr;
 
     if (ccd->restore_cfw_position) {
-        int e = sbig_cfw_goto (ccd->sb, ccd->last_cfw_position);
+        int e = sbig_cfw_goto (ccd->sb, ccd->last_cfw_position, &cfwerr);
         if (e != CE_NO_ERROR)
             return e;
         ccd->restore_cfw_position = 0;

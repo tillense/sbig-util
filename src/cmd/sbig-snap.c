@@ -489,6 +489,7 @@ void update_fitsheader (sbig_t *sb, sbfits_t *sbf, sbig_ccd_t *ccd,
     long cwhite, cblack;
     int e;
     CFW_POSITION cfw_pos = CFWP_UNKNOWN;
+    CFW_ERROR cfwerr;
 
     sbfits_set_ccdinfo (sbf, ccd);
     sbfits_set_temperature (sbf, temp_setpoint, temp);
@@ -498,7 +499,7 @@ void update_fitsheader (sbig_t *sb, sbfits_t *sbf, sbig_ccd_t *ccd,
     if (opt->filter && !strcmp (opt->filter, "cfw")) {
         CFW_STATUS s;
         do {
-            if ((e = sbig_cfw_query (sb, &s, &cfw_pos)) != CE_NO_ERROR)
+            if ((e = sbig_cfw_query (sb, &s, &cfw_pos, &cfwerr)) != CE_NO_ERROR)
                 msg_exit ("sbig_cfw_query: %s", sbig_get_error_string (sb, e));
         } while (s == CFWS_BUSY);
         if (cfw_pos == CFWP_UNKNOWN)
