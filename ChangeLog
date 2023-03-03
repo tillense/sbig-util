@@ -1,6 +1,11 @@
 2023-03-03  Tobias Illenseer <tillense@astrophysik.uni-kiel.de>
 
-	* README.md, src/cmd/sbig-cfw.c, src/cmd/sbig-snap.c,
+	* src/cmd/sbig-snap.c, src/common/libsbig/camera.c: cmd/sbig-snap:
+	adds new command line option for vertical binning
+
+2023-03-03  Tobias Illenseer <tillense@astrophysik.uni-kiel.de>
+
+	* ChangeLog, README.md, src/cmd/sbig-cfw.c, src/cmd/sbig-snap.c,
 	src/common/libini/ini.c, src/common/libsbig/camera.c,
 	src/common/libsbig/cfw.c, src/common/libsbig/cfw.h: filter wheel
 	error handling improved and initialization implemend

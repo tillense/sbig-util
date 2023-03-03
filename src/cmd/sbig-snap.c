@@ -51,6 +51,7 @@ typedef enum { SNAP_DF, SNAP_LF, SNAP_AUTO } snap_type_t;
 struct options {
     CCD_REQUEST chip;
     READOUT_BINNING_MODE readout_mode;
+    unsigned short vertical_binning;
     double partial;
     double t;
     int count;
@@ -80,13 +81,14 @@ const char *software_name = PACKAGE_NAME "-" PACKAGE_VERSION;
 const double TE_stable = 3.0; /* degrees C allowable diff from setpoint */
 static bool interrupted = false;
 
-#define OPTIONS "ht:d:C:r:n:D:m:O:fp:PT:cx:"
+#define OPTIONS "ht:d:C:r:b:n:D:m:O:fp:PT:cx:"
 static const struct option longopts[] = {
     {"help",          no_argument,           0, 'h'},
     {"exposure-time", required_argument,     0, 't'},
     {"image-directory", required_argument,   0, 'd'},
     {"chip",          required_argument,     0, 'C'},
     {"resolution",    required_argument,     0, 'r'},
+    {"vertical-binning", required_argument,  0, 'b'},
     {"count",         required_argument,     0, 'n'},
     {"time-delta",    required_argument,     0, 'D'},
     {"message",       required_argument,     0, 'm'},
@@ -113,6 +115,7 @@ void usage (void)
 "  -d, --image-directory DIR  where to put images (default /tmp)\n"
 "  -C, --ccd-chip CHIP        use imaging, tracking, or ext-tracking\n"
 "  -r, --resolution RES       select hi, med, or lo resolution\n"
+"  -b, --vertical-binning N   set vertical binning (0<N<6, only ST-7/8, default 1)\n"
 "  -n, --count N              take N exposures\n"
 "  -D, --time-delta N         increase exposure time by N on each exposure\n"
 "  -m, --message string       add COMMENT to FITS file\n"
@@ -243,6 +246,11 @@ int main (int argc, char *argv[])
                 else
                     msg_exit ("error parsing --resolution (hi, med, lo)");
                 break;
+            case 'b': /* --vertical-binning N */
+                opt->vertical_binning = (unsigned short)strtoul (optarg, NULL, 10);
+                if (opt->vertical_binning < 1 || opt->vertical_binning > 5)
+                    msg_exit ("error parsing --vertical-binning 1..5");
+                break;
             case 'x': /* --color-convert=mono */
                 free (opt->color_convert);
                 opt->color_convert = xstrdup (optarg);
@@ -292,6 +300,25 @@ int main (int argc, char *argv[])
     if (opt->verbose)
         msg ("Link established to %s", sbig_strcam (type));
 
+    /* Modify readout mode if vertical binning > 1
+     * (applies only to camera types 4 or 5, i.e. ST-7 or ST-8 cameras)
+     */
+    if (opt->vertical_binning > 0) {
+        if (type < 4 || type > 5)
+            msg_exit ("Vertical binning only supported for ST-7/ST-8 cameras, but %s found", sbig_strcam (type));
+        if (opt->readout_mode == RM_1X1) // high resolution
+            opt->readout_mode = RM_NX1;
+        else if (opt->readout_mode == RM_2X2) // mid resolution
+            opt->readout_mode = RM_NX2;
+        else if (opt->readout_mode == RM_3X3) // low resolution
+            opt->readout_mode = RM_NX3;
+        else
+            msg_exit ("unsuppored vertical binning mode");
+        // move vertical binning to high byte of the readout mode
+        opt->readout_mode = opt->readout_mode + (opt->vertical_binning << 8);
+        if (opt->verbose)
+            msg ("Vertical binning %i", (opt->readout_mode & 0xFF00) >> 8);
+    }
     /* Verify TE cooler and set auto-freeze
      */
     if (!opt->no_cooler) {

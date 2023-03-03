@@ -65,10 +65,31 @@ struct sbig_ccd {
 static int lookup_roinfo (sbig_ccd_t *ccd, READOUT_BINNING_MODE mode)
 {
     int i;
-
     for (i = 0; i < ccd->info0.readoutModes; i++)
-        if (ccd->info0.readoutInfo[i].mode == mode)
+        if (ccd->info0.readoutInfo[i].mode == (mode & 0x00FF)) // check only low byte because of vertical binning
             return i;
+    return -1;
+}
+
+static int lookup_roheight (sbig_ccd_t *ccd, READOUT_BINNING_MODE mode)
+{
+    ushort height;
+    int ro_index = lookup_roinfo (ccd, mode);
+
+    if (ro_index >= 0) {
+        // check for ro modes with vertical binning
+        if ( ( (mode & 0x00FF ) == RM_NX1 ) ||
+            ( (mode & 0x00FF ) == RM_NX2 ) ||
+            ( (mode & 0x00FF ) == RM_NX3 ) ) {
+            // get vertical height = max height / vertical binning (taken from high byte of ro mode)
+            height = ccd->info0.readoutInfo[0].height / ( (mode & 0xFF00) >> 8);
+            if ( height > 0 )
+                return height;
+        } else {
+            return ccd->height = ccd->info0.readoutInfo[ro_index].height;
+        }
+    }
+
     return -1;
 }
 
@@ -222,13 +243,15 @@ int sbig_ccd_get_abg_mode (sbig_ccd_t *ccd, ABG_STATE7 *modep)
 int sbig_ccd_set_readout_mode (sbig_ccd_t *ccd, READOUT_BINNING_MODE mode)
 {
     int ro_index = lookup_roinfo (ccd, mode);
+    ushort ro_height = lookup_roheight (ccd, mode);
 
-    if (ro_index == -1)
+    if (ro_index == -1 || ro_height == -1)
         return CE_BAD_PARAMETER;
-    ccd->readout_mode = ccd->info0.readoutInfo[ro_index].mode;
+
+    ccd->readout_mode = mode;
     ccd->top = 0;
     ccd->left = 0;
-    ccd->height = ccd->info0.readoutInfo[ro_index].height;
+    ccd->height = ro_height;
     ccd->width = ccd->info0.readoutInfo[ro_index].width;
     realloc_frame (ccd);
     return CE_NO_ERROR;
@@ -283,7 +306,7 @@ int sbig_ccd_set_partial_frame (sbig_ccd_t *ccd, double part)
     int ro_index = lookup_roinfo (ccd, ccd->readout_mode);
     double top, left;
 
-    ccd->height = cfe (ccd->info0.readoutInfo[ro_index].height, part, &top);
+    ccd->height = cfe (lookup_roheight(ccd, ccd->readout_mode), part, &top);
     ccd->top = top;
     ccd->width = cfe (ccd->info0.readoutInfo[ro_index].width, part, &left);
     ccd->left = left;
