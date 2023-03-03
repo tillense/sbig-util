@@ -1,0 +1,1578 @@
+2023-03-03  Tobias Illenseer <tillense@astrophysik.uni-kiel.de>
+
+	* .gitignore: adds .gitignore file
+
+2019-10-15  Jim Garlick <garlick.jim@gmail.com>
+
+	* : Merge pull request #44 from garlick/fix_build_issues fix build issues on Ubuntu 18.04 and modern INDI packages
+
+2019-10-15  Jim Garlick <garlick.jim@gmail.com>
+
+	* configure.ac, src/cmd/Makefile.am: build: use cfitsio pkgconfig
+	file Problem: configure logic allows configure to succeed but build to
+	fail if libcfitsio-dev build prereq is not installed.  libcfitsio (Ubuntu 18.04) now ships with a pkgconfig file so switch
+	configure over to use that. The pkgconfig logic also defaults to
+	fail-on-missing.
+
+2019-10-15  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libutil/Makefile.am: build: silence benign compiler
+	warnings Problem: compliation fails because gcc-7.4.0 now issues warnings
+	about liblsd's use of assignment within parens.  Disable the warnings for that subdirectory only.
+
+2018-02-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* : Merge pull request #40 from garlick/dlopen_failure libsbig: change default dlopen path
+
+2017-10-14  Jim Garlick <garlick.jim@gmail.com>
+
+	* : Merge pull request #37 from garlick/dlopen_path libsbig/handle: dlopen libsbigudrv.so
+
+2017-10-14  Jim Garlick <garlick.jim@gmail.com>
+
+	* : Merge pull request #36 from garlick/stf8300c add --color-convert option for single shot color cameras like
+	STF-8300C
+
+2017-10-14  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: cmd/sbig-snap: [cleanup] drop trailing
+	whitespace
+
+2017-10-14  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c, src/common/libsbig/sbfits.c,
+	src/common/libsbig/sbfits.h: libsbig/sbfits: allow multiple
+	SWMODIFY, HISTORY cards Change sbfits_set_history() which allowed one SWMODIFY, HISTORY
+	tuple to be added to the FITS file, into sbfits_add_history() which
+	allows an arbitrary number.  From the SBFITSEXT document:   SWMODIFY String - This indicates the name and version of the   Software that modified this file ie ‘SBIGs CCDOps Version
+	  5.10’ and there can be multiple copies of this keyword. Only add
+	  this keyword if you actually modified the image and we suggest
+	  placing this above the HISTORY keywords corresponding to the
+	  modifications made to the image.    HISTORY String - Include multiple copies of this keyword for every   modification made to the image in the order made Update sbig-snap.c.
+
+2017-10-14  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libutil/Makefile.am, src/common/libutil/list.c,
+	src/common/libutil/list.h: libutil/list: pull in Chris Dunlap's list
+	module
+
+2017-10-14  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbfits.c: libsbig/sbfits: update SBIG standard
+	URL
+
+2017-10-14  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbfits.c: libsbig/sbfits: [cleanup] drop
+	trailing whitespace
+
+2017-10-14  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-focus.c: cmd/sbig-focus: add --color-convert=mono
+	option
+
+2017-10-12  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: 
+	libsbig/camera: add sbig_ccd_color_convert()
+
+2017-10-14  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libutil/Makefile.am, src/common/libutil/color.c,
+	src/common/libutil/color.h: libutil/color: add color_bayer_to_mono()
+
+2017-10-12  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c: libsbig/camera: align Bayer matrix
+	for color cameras Problem: Bayer matrix is misaligned on color cameras if a subframe
+	is selected that begins on an odd row or column.  For Bayer cameras only, silently nudge the subframe if necessary so
+	it begins on an even row and column.
+
+2017-10-12  Jim Garlick <garlick.jim@gmail.com>
+
+	* : Merge pull request #31 from garlick/sbig5c fix issue with shutter control on 5C camera
+
+2017-10-11  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: 
+	libsbig/camera: ST-5C/255: use cfw as shutter Problem: on model ST-5C/255, shutter directives are ingored and
+	sbig-snap in "autodark" mode subtracts LF from LF, canceling the
+	signal.  Add a special case for 5C/255 in sbig_ccd_start_exposure() and
+	sbig_ccd_end_exposure() that compensates for the lack of shutter
+	with the internal filter wheel.  The caller just specifies the
+	shutter directives as usual.  Fixes #29
+
+2017-10-10  Jim Garlick <garlick.jim@gmail.com>
+
+	* : Merge pull request #28 from garlick/bugfixes couple of bug fixes
+
+2017-10-10  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c: libsbig/camera: [cleanup] fix
+	trailing whitespace
+
+2017-10-10  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: cmd/sbig-snap: --device should override
+	config file Problem: "sbig --device XYZ snap" doesn't override the device in the
+	config file, which is different than the other tools.  The sbig command driver first reads the device setting from the
+	config file, then allows it to be overridden with --device, before
+	setting SBIG_DEVICE and executing the subcommand.  In subcommands,
+	the SBIG_DEVICE setting should be used directly.  Fix sbig-snap to ignore the device setting in the config file when
+	it pulls out other setup info.  Fixes #26
+
+2017-10-10  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig.c: cmd/sbig: [cleanup] drop trailing whitespace
+
+2017-10-10  Jim Garlick <garlick.jim@gmail.com>
+
+	* configure.ac: build: fix cut and paste error on package name Problem: fits image file contains   WCREATE= 'flux-core-0.1.0-78-g47a2363'   SWMODIFY= 'flux-core-0.1.0-78-g47a2363' because I borrowed the
+	configure.ac snippet for reading the s/w version from git the
+	flux-core project.  Update the package name to sbig-util.
+
+2017-10-08  Jim Garlick <garlick.jim@gmail.com>
+
+	* : Merge pull request #25 from garlick/drop_sbigudrv2 drop local copy of sbigudrv
+
+2017-10-08  Jim Garlick <garlick.jim@gmail.com>
+
+	* test/ethsim2/README.md, test/ethsim2/start.sh,
+	test/ethsim2/trace.ccd_get_info.txt,
+	test/ethsim2/trace.open.link.txt: test: drop ethsim2 copy Problem: ethsim2 is a proprietary windows binary and cannot be
+	distributed with this GPL package.  Drop the test directory for now.
+
+2017-10-08  Jim Garlick <garlick.jim@gmail.com>
+
+	* Makefile.am, config/x_ac_meta.m4, configure.ac,
+	src/cmd/sbig-snap.c: build: derive package info from git Use 'git describe' to set package info at autogen time.  Drop META file which accomplishes the same thing more awkwardly.  Use PACKAGE_NAME and PACKAGE_VERSION in sbig-snap instead of META
+	versions.
+
+2017-10-08  Jim Garlick <garlick.jim@gmail.com>
+
+	* sdk/app/Makefile, sdk/app/csbigcam.cpp, sdk/app/csbigcam.h,
+	sdk/app/csbigimg.cpp, sdk/app/csbigimg.h, sdk/app/lpardrv.h,
+	sdk/app/sbigudrv.h, sdk/app/testmain.cpp, sdk/doc/README.txt,
+	sdk/firmware/sbigfcam.hex, sdk/firmware/sbiglcam.hex,
+	sdk/firmware/sbigpcam.hex, sdk/firmware/sbigucam.hex,
+	sdk/udev/51-sbig-debian.rules, udev/51-sbig-debian.rules: sdk:
+	remove local copy of sbigudrv Fixes #23
+
+2017-10-08  Jim Garlick <garlick.jim@gmail.com>
+
+	* Makefile.am, config/x_ac_sbigudrv.m4, configure.ac,
+	src/cmd/Makefile.am, src/common/libsbig/Makefile.am: build:
+	configure external libsbigudrv
+
+2017-10-08  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-cfw.c, src/cmd/sbig-cooler.c, src/cmd/sbig-find.c,
+	src/cmd/sbig-focus.c, src/cmd/sbig-info.c, src/cmd/sbig-snap.c,
+	src/cmd/sbig.c: cmd/sbig-*: don't require SBIG_UDRV env var Allow sbig_dlopen() path argument to be NULL.
+
+2017-10-08  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/handle.h: libsbig/handle: note that
+	sbig_dlopen() accepts NULL path
+
+2017-10-08  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/driver.c: libsbig/sriver; drop USB5 thru USB8 Problem: DEV_USB5 thru DEV_USB8 are not defined in earlier versions
+	libsbigudrv.h.  These are members of an enum, so we can't test for them with the
+	preprocessor and will need to add an autoconf tests to support them.  For now, just comment out.
+
+2017-08-29  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/Makefile, lpt_drv/ksbigdef.h, lpt_drv/ksbiglpt.c,
+	lpt_drv/ksbiglpt.h, lpt_drv/ksbiglptmain.c, lpt_drv/ksbiglptmain.h,
+	lpt_drv/lpardrv.h, lpt_drv/parlpt.h, lpt_drv/parmicro.h,
+	lpt_drv/paropts.h, lpt_drv/sbigudrv.h, lpt_drv/sbigulpt.h,
+	lpt_drv/udrvsbigonly.h, lpt_drv/ulptdrv.h, lpt_drv/wintypes.h: 
+	lpt_drv: moved to separate repo The sbig parallel port driver is moved to its own repo: https://github.com/garlick/sbig-parport
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: cmd/sbig-info: show mechanical-shutter:
+	yes|no
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: cmd/sbig-info: ccd [tracking|imaging]
+	optional If ccd is not specified, imaging is assumed.  It gets tiresome
+	specifying "imaging" on cameras with no tracking ccd, to be sure!
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglptmain.c: lpt_drv: add some notes about licensing
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: cmd/sbig-info: display output with printf
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-find.c: cmd/sbig-find: display output with printf
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/Makefile.am, src/cmd/sbig-find.c: cmd/sbig-find: new
+	command Display the results of sbig_query_ethernet() and sbig_query_usb().  There is no corresponding function for lpt devices, so attempt to
+	link with LPT1, LPT2, and LPT3 and ask for name, type, and serial
+	using the info queries.
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/driver.c, src/common/libsbig/driver.h: 
+	libsbig/driver: add query commands Add sbig_query_usb() and sbig_query_ethernet()
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/driver.c: libsbig/driver: fix trailing
+	whitespace
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* config/pkg.m4, configure.ac: build: find libusb-1.0 with
+	pkg-config
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-cfw.c: cmd/sbig-cfw: fix trailing whitespace
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: cmd/sbig-info: fix up trailing whitespace
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: cmd/sbig-info: decode the cfw firmware
+	version
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/temp.c: libsbig/temp: use TEMP_STATUS_ADVANCED2 fanSpeed and trackingCCDSetpoint are not set with the
+	TEMP_STATUS_ADVANCED reuqest.  Use TEMP_STATUS_ADVANCED2 to set
+	these values, otherwise they display as garbage.
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: cmd/sbig-info: refactor info subcommand Display each camera info structure in separate functions, treating
+	CE_BAD_PARAMETER as a non-fatal error meaning "request inappropriate
+	for this camera model" in cases where the info structure may not be
+	supported, rather than hardwiring that based on model/chip.  I wasn't sure what to do with the STX/STXL bit in info6, so I just
+	grab info6 in the info0 function if the camera shows as STX, and
+	display it as STXL if the bit is set.
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c: libsbig/camera: [cleanup] don't cache
+	info4 There is no need to cache the GetCCDInfoResults4() response.  Just
+	get the info we need for the ccd object and cache that.
+
+2017-08-13  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbfits.c: libsbig/sbfits: fix typo in comment
+
+2017-08-12  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: cmd/sbig-info: display extended info6 (color,
+	stxl)
+
+2017-08-12  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: 
+	libsbig/camera: add sbig_ccd_get_info6()
+
+2017-08-12  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: cmd/sbig-info: handle 5C/237 info properly The 5C/237 do not support "info2" request.  Use "info3" instead.  Also, allow "info4" for tracking ccd.
+
+2017-08-12  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: 
+	libsbig/camera: add sbig_ccd_get_info3() Suport the SBIG 5C extended info request.
+
+2017-08-07  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig.c: cmd/sbig: redefine struct options Drop opt_t typedef and just use 'struct options'.  Allocate it on
+	the heap.
+
+2017-08-07  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: cmd/sbig-snap: redefine struct options Drop opt_t typedef and just use 'struct options'.  Allocate it on
+	the heap, and pass it by reference with const tag to subroutines
+	where possible.
+
+2017-08-07  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: cmd/sbig-info: redefine struct options Drop opt_t typedef and just use 'struct options'.  Allocate it on
+	the heap, and pass it by reference with const tag to subroutines.
+
+2017-08-07  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-focus.c: cmd/sbig-focus: drop trailing whitespace
+
+2017-08-07  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-focus.c: cmd/sbig-focus: redefine struct options Drop opt_t typedef and just use 'struct options'.  Allocate it on
+	the heap, and pass it by reference wtih const tag to subroutines.
+
+2017-08-07  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbfits.c, src/common/libsbig/sbfits.h: libsbig:
+	drop _struct from sbfits_struct
+
+2017-08-07  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	drop _struct from sbig_ccd_struct
+
+2017-08-07  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-focus.c, src/cmd/sbig-snap.c,
+	src/common/libsbig/sbfits.c, src/common/libsbig/sbfits.h: libsbig:
+	change sbfits_t typedef to not hide pointer Change the sbfits_t typedef so that it doesn't obscure the fact that
+	it's a pointer.  E.g. now one declares "sbfits_t *sbf" rather than
+	"sbfits_t sbf".  Update all users.
+
+2017-08-07  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-focus.c, src/cmd/sbig-info.c, src/cmd/sbig-snap.c,
+	src/common/libsbig/camera.c, src/common/libsbig/camera.h,
+	src/common/libsbig/sbfits.c, src/common/libsbig/sbfits.h: libsbig:
+	change sbig_ccd_t typedef to not hide pointer Change the sbig_ccd_t handle typedef so that it doesn't obscure the
+	fact that it's a pointer.  E.g. now one declares "sbig_ccd_t *ccd"
+	rather than "sbig_ccd_t ccd".  Update all users.
+
+2017-08-07  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/handle.h, src/common/libsbig/handle_impl.h: 
+	libsbig: drop the _struct from sbig_struct
+
+2017-08-07  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-cfw.c, src/cmd/sbig-cooler.c, src/cmd/sbig-focus.c,
+	src/cmd/sbig-info.c, src/cmd/sbig-snap.c,
+	src/common/libsbig/camera.c, src/common/libsbig/camera.h,
+	src/common/libsbig/cfw.c, src/common/libsbig/cfw.h,
+	src/common/libsbig/driver.c, src/common/libsbig/driver.h,
+	src/common/libsbig/handle.c, src/common/libsbig/handle.h,
+	src/common/libsbig/temp.c, src/common/libsbig/temp.h: libsbig:
+	change sbig_t typedef to not hide pointer Change the sbig_t handle typedef so that it doesn't obscure the fact
+	that it's a pointer.  E.g. now one declares "sbig_t *sb" rather than
+	"sbig_t sb".  Update all users.
+
+2017-07-17  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: cmd/sbig-info: gracefully handle unavailable
+	xinfo ST-237, ST-5C apparently can't supply extended imager info, e.g.
+	serial-number, ABG, and bad-columns.  If the query returns a
+	CE_BAD_PARAMETER error, list these attributes as "unknown" and
+	continue on.
+
+2017-07-08  Jim Garlick <garlick.jim@gmail.com>
+
+	* test/ethsim2/trace.ccd_get_info.txt: test: add trace of ethsim2
+	ccd_get_info0 ST-7 camera in ethsim2 initialization already completed api calls:   sbig_ccd_create     sbig_ccd_get_info0   CC_GET_CCD_INFO (CCD_INFO_IMAGING)     sbig_ccd_get_info4     sbig_ccd_get_info4   CC_GET_CCD_INFO
+	  (CCD_INFO_EXTENDED2_IMAGING) sbig_ccd_get_info0
+	CC_GET_CCD_INFO (CCD_INFO_IMAGING)
+
+2017-07-08  Jim Garlick <garlick.jim@gmail.com>
+
+	* test/ethsim2/trace.open.link.txt: test: add trace of ethsim2 being
+	init handshake API calls   sbig_new   sbig_dlopen   sbig_open_driver   sbig_open_device      CC_OPEN_DEVICE   sbig_establish_link   CC_ESTABLISH_LINK   sleep ...  Hint in wireshark:   disable Preferences->Protocols->GSM over IP
+
+2017-06-25  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/parmicro.h: lpt_drv: fix multi-include protection typo
+
+2017-06-25  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglpt.c, lpt_drv/ksbiglptmain.c,
+	lpt_drv/ksbiglptmain.h: lpt_drv: rename inb/outb function pointers Avoid compilation issues on arm7l (raspberry pi), e.g.: ksbiglpt.c:1123:949: error: expected identifier before ‘(’ token Apparently inb() and outb() in struct private_data must conflict
+	with a macro or something, so change the name of those structure
+	members to pp_inb() and pp_outb().
+
+2017-06-25  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/Makefile: lpt_drv: allow KERNEL_DIR to be set
+
+2017-06-25  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/sbigudrg.h: lpt_drv: drop unused header file
+
+2017-06-10  Jim Garlick <garlick.jim@gmail.com>
+
+	* : Merge pull request #22 from garlick/parallel_port_rework Parallel port rework
+
+2017-06-10  Jim Garlick <garlick.jim@gmail.com>
+
+	* udev/51-sbig-debian.rules: udev: add udev rule for fixing parallel
+	port perms Copy the udev rules from the SDK and add a rule for ensuring
+	/dev/sbiglptN is mod 666.
+
+2017-06-10  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/history.log, lpt_drv/resource.h: lpt_drv: drop unused
+	files
+
+2017-06-07  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/Makefile, lpt_drv/compatibility.h, lpt_drv/ksbiglpt.c,
+	lpt_drv/ksbiglpt.h, lpt_drv/ksbiglptd.h, lpt_drv/ksbiglptd0.c,
+	lpt_drv/ksbiglptd1.c, lpt_drv/ksbiglptd2.c, lpt_drv/ksbiglpthw.c,
+	lpt_drv/ksbiglpthw.h, lpt_drv/ksbiglptmain.c,
+	lpt_drv/ksbiglptmain.h: lpt_drv: rewrite driver main, use parport Rewrite the driver mainline.  Claim any available SPP-capable ports
+	through 'parport' at modprobe time.  Build an array of the claimed
+	ports in the mainline code, indexed by minor number.  When the device is opened, assign inb/outb function pointers and the
+	device minor number to private_data, then use those in place of
+	inb/outb to the legacy parallel port memory map.  These functions
+	call the parport read_status() and write_data() methods,
+	respectively, for the port associated with the minor number.  Drop some of the wrapper code that was there from 2.4, implementing
+	the complete open and release file_operations in the driver main,
+	including private_data allocation/deallocation.  The memory regions
+	are no longer claimed in open since a parport device will have been
+	claimed at modprobe time.  Fixes #21
+
+2017-06-07  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/Makefile: lpt_drv: drop "mod" suffix from sbiglpt It's not (or is no longer) common practice to have "mod" suffix on
+	kernel modules, so drop ours.
+
+2017-06-05  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-cfw.c: cmd/sbig-cfw: fix indent making gcc-6.3.0 sad
+
+2017-06-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* : Merge pull request #19 from garlick/test_simulator test: add ethsim2 with script to start under wine
+
+2017-06-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* : Merge pull request #18 from garlick/parallel_port_cameras working parallel port driver
+
+2017-06-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglptmain.c: lpt_drv: use modern char driver
+	initialization Instead of register_chrdev(), call alloc_chrdev_region() and
+	cdev_init().  This allocates major/minor numbers dynamically.
+
+2017-06-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglpt.c, lpt_drv/ksbiglptmain.c: lpt_drv: use HZ
+	instead of gLptHz Problem: driver hardwires several HZ values and attempts to time
+	elapsed jiffies to determine which it is, then uses that as the
+	basis for timeouts.  My HZ is 250 but that was not one of the
+	expected values, so it used 1.  The above code is fragile, and I'm not sure I understand what it
+	accomplished.  Switch back to using the defined HZ value rather than
+	the calculated one.
+
+2017-06-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/Makefile: lpt_drv: define _CHATTY_=1 for now
+
+2017-06-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglpt.c, lpt_drv/ksbiglptd0.c, lpt_drv/ksbiglpthw.c,
+	lpt_drv/ksbiglptmain.c: lpt_drv: use __FUNCTION__ macro in printk
+	output
+
+2017-06-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglpt.c, lpt_drv/ksbiglptd0.c, lpt_drv/ksbiglpthw.c,
+	lpt_drv/ksbiglptmain.c: lpt_drv: use printk log level macros Replace <0> inside printk argument with LOG_ERR or LOG_DEBUG
+	prepended to debug argument, as is customary per
+	http://elinux.org/Debugging_by_printing
+
+2017-06-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglpt.c: lpt_drv: avoid floating point mult [Callum
+	Potter] Now on kernel 4.10.0-21 and reproduced the problem reported by
+	Callum in 2015, which was supposedly fixed earlier: WARNING: "__muldf3" [lpt_drv/sbiglptmod.ko] undefined! WARNING:
+	"__floatunsidf" [lpt_drv/sbiglptmod.ko] undefined! WARNING:
+	"__fixunsdfsi" [lpt_drv/sbiglptmod.ko] undefined! The earlier commit only fixed one of the two lines Callum reported.
+	This catches the other one.
+
+2015-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/Makefile: lpt_drv: allow kernel version to be overridden Change the Makefile so the driver can be built if the installed
+	linux-headers don't match the running kernel, e.g.  make KERNEL_VERSION=3.14.13-66-generic
+
+2015-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglpt.c: lpt_drv: avoid floating point mult [Callum
+	Potter] As mentioned in #11, on some platforms __multdf3 and other symbols
+	are undefined at compile time when explicit floating point math is
+	used.  Change one expresssion to allow integer conversion and avoid
+	this.
+
+2015-05-11  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglpt.c, lpt_drv/ksbiglptmain.c: lpt_drv: fix gLptHz
+	gLastError definitions Declare these variables as globals, not static, as they are
+	referenced in another file.  Fix extern definition of gLastError to use the correct type (it is
+	defined unsigned short not unsigned long).
+
+2015-05-11  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglpt.c: lpt_drv: drop MOD_INC_USE_COUNT,
+	MOD_DEC_USE_COUNT Module use counting is now handled automatically.
+
+2015-05-11  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglpt.c, lpt_drv/ksbiglpthw.c: lpt_drv: fix includes
+	for kmalloc/kfree The <linux/slab.h> include is needed for kmalloc/kfree prototypes.
+
+2015-05-11  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglpthw.c: lpt_drv: fix extern spinlock reference ksbiglpthw.c defines:   extern spinlock_t d0_lock; This has two problems: d0_lock is not defined, and the calls to
+	spin_lock() and spin_unlock() pass d0_lock directly when these
+	functions require a (spinlock_t *) argument.  Rename d0_lock to d0_spinlock to match its definition elsewhere, and
+	fix the spin_lock(), spin_unlock() arguments.  Guess: this code was never built on an SMP system, so the
+	spin_lock(), spin_unlock() calls were compiled out?
+
+2015-05-11  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglptmain.c: lpt_drv: drop EXPORT_NO_SYMBOLS Exporting no symbols is now the default so this macro is
+	unnecessary, and also unavailable.
+
+2015-05-11  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglpt.c, lpt_drv/ksbiglpt.h, lpt_drv/ksbiglptd.h,
+	lpt_drv/ksbiglptd0.c, lpt_drv/ksbiglptd1.c, lpt_drv/ksbiglptd2.c,
+	lpt_drv/ksbiglptmain.c: lpt_drv: update ioctl prototype struct file_operations no longer has an ioctl() member.  Use
+	unlocked_ioctl() and update prototype: old:  int ioctl (struct inode *, struct file *, int, long) new: long
+	ioctl (struct file *, int, long)
+
+2015-05-11  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ulptdrv.h: lpt_drv: ulptdrv.h should include sbigudrv.h Otherwise TARGET and ENV_LINUX are undefined.
+
+2015-05-11  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/ksbiglpt.c, lpt_drv/ksbiglptd0.c, lpt_drv/ksbiglptd1.c,
+	lpt_drv/ksbiglptd2.c, lpt_drv/ksbiglpthw.c, lpt_drv/ksbiglptmain.c: 
+	lpt_drv: update include boiler plate Replace <linux/config.h> with <linux/init.h> Remove
+	<linux/wrapper.h>
+
+2015-05-11  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/Makefile: lpt_drv: modernize Makefile Replace the old Makefile with a Kbuild file.
+
+2015-05-11  Jim Garlick <garlick.jim@gmail.com>
+
+	* lpt_drv/Makefile, lpt_drv/compatibility.h, lpt_drv/history.log,
+	lpt_drv/ksbigdef.h, lpt_drv/ksbiglpt.c, lpt_drv/ksbiglpt.h,
+	lpt_drv/ksbiglptd.h, lpt_drv/ksbiglptd0.c, lpt_drv/ksbiglptd1.c,
+	lpt_drv/ksbiglptd2.c, lpt_drv/ksbiglpthw.c, lpt_drv/ksbiglpthw.h,
+	lpt_drv/ksbiglptmain.c, lpt_drv/ksbiglptmain.h, lpt_drv/lpardrv.h,
+	lpt_drv/parlpt.h, lpt_drv/parmicro.h, lpt_drv/paropts.h,
+	lpt_drv/resource.h, lpt_drv/sbigudrg.h, lpt_drv/sbigudrv.h,
+	lpt_drv/sbigulpt.h, lpt_drv/udrvsbigonly.h, lpt_drv/ulptdrv.h,
+	lpt_drv/wintypes.h: lpt_drv: added source to old lpt driver Import source to older linux 2.4 device driver for parallel port
+	cameras.  This code was provided to customers on the SBIG web site
+	as lpt_drv.tar.gz but has since been removed.  It was provided to me
+	by Tim Puckett, VP of sales at Cyanogen/SBIG.  Hopefully we can get
+	it ported to a modern Linux kernel.  Stracing the current sbigudrv sdk, it would appear that the code for
+	communicating with this driver remains in place although it surely
+	has not been tested on Linux for some time.  It is unclear whether
+	an older version of the sdk from the same era as the driver
+	(2005-2008?) will need to be employed.  The original directory structure was flattend from:   Makefile   module/sbig/<source code>   release/module/sbig/<module binary> and build products were
+	excluded.
+
+2015-05-31  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: accept SBIG_DEVIce environment
+	variable Otherwise "sbig -d device snap ..." ignored the device setting.
+
+2015-05-31  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-cfw.c, src/cmd/sbig-cooler.c, src/cmd/sbig-focus.c,
+	src/cmd/sbig-info.c, src/cmd/sbig-snap.c, src/cmd/sbig.c,
+	src/common/libsbig/driver.c, src/common/libsbig/driver.h: libsbig:
+	get ethernet cameras working sbig_open_device() now takes textual name If a dotted-quad ipv4 address, parse that and set address and
+	DEV_ETH.  Otherwise convert USB1, LPT1, etc. to DEV_USB1, DEV_LPT1,
+	etc.  Convert commands to use this.
+
+2014-11-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: Update for release
+
+2014-11-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* Makefile.am: build: include sdk binaries
+
+2014-11-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* META, Makefile.am, src/common/libsbig/Makefile.am: build: fix
+	distcheck problems, update META
+
+2014-11-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: put actual s/w version in FITS
+	file Fixes issue #6
+
+2014-11-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: Update README.md for FITS header changes
+
+2014-11-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbfits.c: libsbig: add DATAMAX fits header
+	value This is discussed in issue #2
+
+2014-11-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: fix opt parsing of --image-type
+	auto
+
+2014-11-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig.c: sbig: fix bug finding installed subcommands sbig was using a relative path all the time instead of the compiled
+	in libexec directory to find subcommands
+
+2014-11-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: get filter from cfw configuration,
+	if used If filter is set to "cfw" in the config file, then query the filter
+	position from the cfw and read the description of that position for
+	the FILTER FITS header value.  Fixes #4
+
+2014-11-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-cooler.c: sbig-cooler: remove inappropriate modes
+
+2014-11-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: enable auto-freeze If TE regulation is enabled, set autofreeze flag so that regulation
+	is quiet during readout.  It is essential that we complete the
+	readout - now that SIGINT is handled we can be pretty sure.  Fixes issue #7
+
+2014-11-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: update README.md with command usages
+
+2014-11-04  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: sbig-info: correct units in fov comments
+
+2014-11-03  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: change --no-cooler message
+
+2014-11-03  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: add --no-cooler Check cooler enabled, temp stability once at the beginning.  Reduce
+	verbose output.
+
+2014-11-03  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-focus.c: sbig-focus: cleanup Tidy up sigint handling and refine some verbose messages.
+
+2014-11-03  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: handle SIGINT
+
+2014-11-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: update README.md for sbig-focus
+
+2014-11-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/Makefile.am, src/cmd/sbig-focus.c, src/cmd/sbig.c: 
+	sbig-focus: new Add utility for focusing/alignment that takes non-persistent images
+	in a tight loop until the user types ctrl-C.  Fixes issue #1
+
+2014-11-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: remove some dead code
+
+2014-11-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: set IMAGETYP in FITS header
+
+2014-11-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: update for IMAGETYP FITS header value
+
+2014-11-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbfits.c, src/common/libsbig/sbfits.h: libsbig:
+	add sbfits_set_imagetype()
+
+2014-11-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: add --image-type argument sbig-snap --image-type=DF   # take dark frame (only) sbig-snap
+	--image-type=LF   # take light frame (only) sbig-snap
+	--image-type=AUTO (default)  # take DF + LF, subtract, write LF
+
+2014-11-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: small amount of
+	refactoring/cleanup
+
+2014-11-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: describe ds9 preview in README.md
+
+2014-11-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig.c: sbig: set XPA_NSINET if configured This allows for sub-commands to transparently get remote ds9 access
+	via xpaset/xpaget.  For this to work ds9 needs two things: 1) it needs to be told to bind to an address other than localhost.
+	One way is to set this environment variable before starting ds9:    export XPA_HOST=<ipaddr> 2) it needs to be told to allow specific hosts to connect One way is
+	   to create $HOME/acls.xpa with the line: DS9:ds9 <ipaddr> +
+
+2014-11-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: add --preview option for ds9 After writing FITS file, spawn xpaset command to tell ds9 to display
+	the file.  The file is provided to xpaset on its stdin.  fixes issue #14
+
+2014-11-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* sdk/app/Makefile.rpath: sdk: drop Makefile.rpath
+
+2014-11-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* : Merge remote-tracking branch 'origin/master' Conflicts:         sdk/app/Makefile
+
+2014-11-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* sdk/app/Makefile, sdk/app/Makefile.rpath: sdk: add Makefile and
+	Makefile.rpath
+
+2014-11-01  Jim Garlick <garlick.jim@gmail.com>
+
+	* sdk/app/Makefile, sdk/app/makefile: sdk: update app/Makefile
+
+2014-11-01  Jim Garlick <garlick.jim@gmail.com>
+
+	* sdk/app/Makefile, sdk/app/csbigimg.h, sdk/app/makefile,
+	sdk/app/testmain.cpp: sdk: update to LinuxDevKit-2014-10-27T12-58 No changes to firmware, libs, or header; just app changes.
+
+2014-10-31  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: suggest github issue/pull request for support
+
+2014-10-31  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: use /tmp for default image dir
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbfits.c: libsbig: tidy up sbfits header
+	comments
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: update FITS header
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: set new FITS values
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h,
+	src/common/libsbig/sbfits.c, src/common/libsbig/sbfits.h: libsbig:
+	pull in background/range calc from sdk This allows us to set CBLACK, CWHITE in FITS header
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: check range of --partial
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md, src/cmd/sbig-snap.c: doc: Update readme FITS header
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbfits.c, src/common/libsbig/sbfits.h: libsbig:
+	add SET-TEMP fits header
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c, src/cmd/sbig-snap.c,
+	src/common/libsbig/camera.c, src/common/libsbig/camera.h: sbig-snap:
+	add --partial option
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	add partial frame support
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: update FITS header in README
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: handle more fits headers
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbfits.c, src/common/libsbig/sbfits.h: libsbig:
+	handle more FITS headers
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: sbig-info: calculate pixel resolution with
+	FOV
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: disclaimer about completeness of package
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: typo
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: Update initial description
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md, src/common/libsbig/README.md: doc: pull in FITS header
+	info
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: update README after sbig-info command line change
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: sbig-info: add fov calculation
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: sbig-info: clean up initialization Don't initialize if the command isn't recognized
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-cooler.c: sbig-cooler: fix couple arg parsing issues
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md, src/cmd/README.md: doc: update README.md Top level README.md eats the one in src/cmd
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/README.md: doc: Fix markdown error
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/README.md: doc: update config in README.md
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: add some FIXMEs
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: sbig-info: get device from environment
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: get config file name from
+	environment
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-cfw.c: sbig-cfw: read SBIG_DEVICE from environment
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-cooler.c: sbig-cooler: get SBIG_DEVICE from
+	environment
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig.c: sbig: parse config and set SBIG_DEVICE in
+	environment
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/driver.c, src/common/libsbig/driver.h: libsbig:
+	add  sbig_strdev(), sbig_devstr()
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: support all the device types
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/README.md: doc: example config file
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: added site info to config file
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/README.md, src/common/libsbig/sbfits.c,
+	src/common/libsbig/sbfits.h: libsbig: added site info to FITS header
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/README.md: doc: README.md for libsbig Document the state of FITS header population.
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: make user aware of missing FITS
+	header vals
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/Makefile.am, src/cmd/sbig-snap.c: sbig-snap: add config
+	file
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbfits.c, src/common/libsbig/sbfits.h: libsbig:
+	add more sbfits header entries
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* configure.ac, src/common/Makefile.am,
+	src/common/libini/LICENSE.txt, src/common/libini/Makefile.am,
+	src/common/libini/README.txt, src/common/libini/cpp/INIReader.cpp,
+	src/common/libini/cpp/INIReader.h,
+	src/common/libini/cpp/INIReaderTest.cpp,
+	src/common/libini/examples/config.def,
+	src/common/libini/examples/ini_dump.c,
+	src/common/libini/examples/ini_example.c,
+	src/common/libini/examples/ini_xmacros.c,
+	src/common/libini/examples/test.ini,
+	src/common/libini/extra/Makefile.static, src/common/libini/ini.c,
+	src/common/libini/ini.h, src/common/libini/tests/bad_comment.ini,
+	src/common/libini/tests/bad_multi.ini,
+	src/common/libini/tests/bad_section.ini,
+	src/common/libini/tests/baseline_multi.txt,
+	src/common/libini/tests/baseline_single.txt,
+	src/common/libini/tests/baseline_stop_on_first_error.txt,
+	src/common/libini/tests/bom.ini,
+	src/common/libini/tests/multi_line.ini,
+	src/common/libini/tests/normal.ini,
+	src/common/libini/tests/unittest.bat,
+	src/common/libini/tests/unittest.c,
+	src/common/libini/tests/user_error.ini: libini: import inih_r29 for
+	config file parsing
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: clean up fits open error
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: prepare for not hardwiring device
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: use sbfits class for file I/O
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbfits.c: libsbig: fix up sbfits_write_file
+	name
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbfits.c, src/common/libsbig/sbfits.h: libsbig:
+	rework sbfits API somewhat
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbfits.c, src/common/libsbig/sbfits.h: libsbig:
+	use const in sbfits API where appropriate
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbfits.c, src/common/libsbig/sbfits.h: libsbig:
+	don't expose cfitsio error status in API
+
+2014-10-30  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: bit more cleanup
+
+2014-10-29  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/Makefile.am, src/common/libsbig/sbfits.c,
+	src/common/libsbig/sbfits.h: libsbig: add sbfits class Allows FITS files with SBIG header extensions to be written with
+	minimal fuss.
+
+2014-10-29  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	add accessors for exposure, start time
+
+2014-10-29  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: write DATE and DATE-OBS (GMT) to
+	FITS
+
+2014-10-29  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: cleanup and refactoring After last night's hurried attempt to get something working before
+	dark, a little refactoring is applied to make it more maintainable.  The only functional change is now we retake DF if cooler temperature
+	has drifted more than 1C from start to finish, which would indicate
+	that maybe cooling is on but it has not yet reached temperature.
+
+2014-10-29  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: cleanup: factor snap() out of
+	main()
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: add --message option Puts a comment in the FITS header.
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: add series capability Needs to be cleaned up later.
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: take only auto-dark images Drop the option for taking just a dark frame.  Instead always take a
+	dark frame and an auto-subtracted light frame.  We'll add "expert"
+	options later!
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	add sbig_ccd_readout_subtract()
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: add CCD-TEMP and EXPTIME header
+	keys
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: write fits file format
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	add sbig_ccd_get_data()
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* configure.ac, src/cmd/Makefile.am: build: locate cfitsio library
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: query temp at start of integration
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: tidy up some error handling
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/Makefile.am, src/cmd/sbig-cooler.c: sbig-cooler: added new
+	temp control util
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: sbig-info: add 'cooler' target
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/temp.c, src/common/libsbig/temp.h: libsbig:
+	remove redundant temp status call
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/temp.c, src/common/libsbig/temp.h: sbig-util:
+	add temp control functions
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: add -r, --resolution lo,med,hi
+	option
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: sleep during integration
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: sbig-snap: call start/end_exposure with flags The only actual flag we are passing that is new, is when we start,
+	we call end_exposure to abort any in-progress exposure with the
+	ABORT_DONT_END flag.
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	add flags to start/end_exposure()
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c: libsbig: add some inline comments to
+	camera.c
+
+2014-10-28  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	change default ABG from CLK_MED to OFF
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: cmd: sbig-snap: add --dark option
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: cmd: add some command line options to
+	sbig-snap
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c: libsbig: writepgm add comments to
+	file Record some telemetry info in the PGM file, as comments.
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c: libsbig: fix another bug in writepgm Height and width were reversed in header
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c: libsbig: fix bug in writepgm
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-snap.c: cmd: further work on sbig-snap
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	sbig_ccd_set/clr_exposure_flags()
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libusb:
+	change unsigned short to ushort
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/Makefile.am, src/cmd/sbig-snap.c: cmd: add sbig-snap
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	sbig_ccd_get_exposure_status use enum Instead of a ushort, return PAR_COMMAND_STATUS enum
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.h: libsbig: document defualt ccd values
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: sbig:
+	get sbig_ccd_get_max() We will try focus by coarse constrast detection.
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: fix formatting error in README.md
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: doc: update readme after SDK update
+
+2014-10-26  Demo User <debian@black.(none)>
+
+	* sdk/app/makefile: sdk: update makefile for new lib paths
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* configure.ac: sdk: update configure.ac for new sdk lib paths
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* : sdk: update to LinuxDevKit-2014-10-26T18-10 This provides multiple ARM architecture builds.  Did not take app
+	changes as they simply reconfigured wtihout cfitsio.
+
+2014-10-26  Jim Garlick <garlick.jim@gmail.com>
+
+	* : sdk: move arch to libs, arm to arm_v6 Get ready for new sdk drop
+
+2014-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: README.md: reference specific SDK version included
+
+2014-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/Makefile.am: build: fix missing CFLAGS in cmd dir
+
+2014-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: README.md: update usage
+
+2014-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: README.md: Fix usage going off display
+
+2014-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: README.md: add testapp Usage message
+
+2014-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: README.md: add where sdk was reportedly built
+
+2014-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: README.md: explain why cfitsio
+
+2014-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbigudrv.h: libsbig: drop local copy of
+	sbigudrv.h
+
+2014-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* configure.ac, src/common/libsbig/Makefile.am: build: point at new
+	sdk locations
+
+2014-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* README.md: README.md: Update instructions for testapp
+
+2014-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* sdk/app/makefile: sdk: fix up app/makefile to work on Ubuntu 14.04
+
+2014-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* sdk/app/Makefile, sdk/app/Makefile32: sdk: remove Makefiles from
+	old sdk
+
+2014-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* sdk/app/makefile, sdk/app/sbigudrv.h, sdk/app/testmain.cpp,
+	sdk/firmware/sbigfcam.hex, sdk/firmware/sbiglcam.hex,
+	sdk/firmware/sbigpcam.hex, sdk/firmware/sbigucam.hex: sdk: update to
+	2014-10-21T14-29 For now, copied rpi arm binary to arch/arm and ignored the droid
+	library.
+
+2014-10-21  Jim Garlick <garlick.jim@gmail.com>
+
+	* sdk/LinuxDevKit.2014-01-10/arm/c/testapp/Makefile32,
+	sdk/LinuxDevKit.2014-01-10/arm/c/testapp/csbigcam.cpp,
+	sdk/LinuxDevKit.2014-01-10/arm/c/testapp/csbigimg.h,
+	sdk/LinuxDevKit.2014-01-10/arm/c/testapp/lpardrv.h,
+	sdk/LinuxDevKit.2014-01-10/arm/c/testapp/sbigudrv.h,
+	sdk/LinuxDevKit.2014-01-10/arm/c/testapp/testmain.cpp,
+	sdk/LinuxDevKit.2014-01-10/firmware/sbigfcam.hex,
+	sdk/LinuxDevKit.2014-01-10/firmware/sbiglcam.hex,
+	sdk/LinuxDevKit.2014-01-10/firmware/sbigpcam.hex,
+	sdk/LinuxDevKit.2014-01-10/firmware/sbigucam.hex,
+	sdk/LinuxDevKit.2014-01-10/x86/c/testapp/csbigcam.h,
+	sdk/LinuxDevKit.2014-01-10/x86/c/testapp/csbigimg.cpp,
+	sdk/{LinuxDevKit.2014-01-10/x86/c/testapp => app}/Makefile,
+	sdk/{LinuxDevKit.2014-01-10/x86/c/testapp => app}/Makefile32,
+	sdk/{LinuxDevKit.2014-01-10/x86/c/testapp => app}/csbigcam.cpp,
+	sdk/{LinuxDevKit.2014-01-10/arm/c/testapp => app}/csbigcam.h,
+	sdk/{LinuxDevKit.2014-01-10/arm/c/testapp => app}/csbigimg.cpp,
+	sdk/{LinuxDevKit.2014-01-10/x86/c/testapp => app}/csbigimg.h,
+	sdk/{LinuxDevKit.2014-01-10/x86/c/testapp => app}/lpardrv.h,
+	sdk/{LinuxDevKit.2014-01-10/x86/c/testapp => app}/sbigudrv.h,
+	sdk/{LinuxDevKit.2014-01-10/x86/c/testapp => app}/testmain.cpp,
+	sdk/{LinuxDevKit.2014-01-10 => }/doc/README.txt,
+	sdk/{LinuxDevKit.2014-01-10 => }/udev/51-sbig-debian.rules: sdk:
+	reorganized directory
+
+2014-10-20  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	write PGM in network byte order
+
+2014-10-20  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c: libsbig: correct PGM maxval
+
+2014-10-20  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	add sbig_ccd_writemem, _writepgm
+
+2014-10-20  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	add readout function
+
+2014-10-20  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h,
+	src/common/libsbig/driver.h: libsbig: tighten up exposure limits
+	based on model
+
+2014-10-19  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: sbig-info: update after camera api changes
+
+2014-10-19  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	add get_ccd_exposure_status()
+
+2014-10-19  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/driver.c, src/common/libsbig/driver.h: libsbig:
+	add sbig_query_cmd_status()
+
+2014-10-19  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	rework camera, adding sbig_ccd_t object
+
+2014-10-19  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/handle.h: libsbig: added comments in handle.h
+
+2014-10-19  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/driver.c, src/common/libsbig/driver.h: libsbig:
+	added open_device for LPT and ETH cameras
+
+2014-10-19  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/driver.c, src/common/libsbig/driver.h: libsbig:
+	added sbig_close_driver()
+
+2014-10-03  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	use READOUT_BINNING_MODE enum
+
+2014-10-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	exposre time in seconds as a double
+
+2014-10-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/camera.c, src/common/libsbig/camera.h: libsbig:
+	add exposure commands
+
+2014-10-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-cfw.c: sbig-cfw: fix command parsing
+
+2014-10-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/Makefile.am, src/common/libsbig/ao.c,
+	src/common/libsbig/ao.h, src/common/libsbig/camera.h,
+	src/common/libsbig/cfw.h, src/common/libsbig/driver.h,
+	src/common/libsbig/sbig.h, src/common/libsbig/sbigudrv.h,
+	src/common/libsbig/temp.c, src/common/libsbig/temp.h: add templates
+	for ao.c, temp.c
+
+2014-10-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-cfw.c, src/cmd/sbig-info.c, src/common/libsbig/ao.c,
+	src/common/libsbig/ao.h, src/common/libsbig/handle.c,
+	src/common/libsbig/handle.h, src/common/libsbig/temp.c,
+	src/common/libsbig/temp.h: libsbig: use SDK GetErorString not
+	sbig_strerror()
+
+2014-10-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/Makefile.am, src/common/libsbig/{camtab.c =>
+	camera.c}, src/common/libsbig/camera.h,
+	src/common/libsbig/{cfwtab.c => cfw.c}, src/common/libsbig/cfw.h,
+	src/common/libsbig/driver.c, src/common/libsbig/driver.h,
+	src/common/libsbig/{errtab.c => handle.c},
+	src/common/libsbig/handle.h, src/common/libsbig/handle_impl.h,
+	src/common/libsbig/sbig.c, src/common/libsbig/sbig.h: libsbig: split
+	api by area
+
+2014-10-02  Jim Garlick <garlick.jim@gmail.com>
+
+	* config/x_ac_check_cond_lib.m4: build: fix quoting in
+	x_ac_check_cond_lib.m4 Bring in fix from Flux repo (Mark Grondona)
+
+2014-09-24  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/Makefile.am, src/cmd/sbig-cfw.c, src/cmd/sbig-info.c: add
+	sbig-cfw command We can change filters!
+
+2014-09-24  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbig.c, src/common/libsbig/sbig.h: libsbig: add
+	cfw control commands
+
+2014-09-24  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c, src/common/libsbig/sbig.c,
+	src/common/libsbig/sbig.h: libsbig: return cfw position with info
+
+2014-09-24  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/Makefile.am, src/common/libsbig/cfwtab.c,
+	src/common/libsbig/sbig.h: libsbig: add cfw info commands
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: sbig-info: display extended ccd info
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbig.c, src/common/libsbig/sbig.h: libsbig: add
+	sbig_get_ccd_xinfo2()
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: sbig-info: use sbig_strcam() by its new name
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/Makefile.am, src/common/libsbig/{devtab.c =>
+	camtab.c}, src/common/libsbig/sbig.h: libsbig: rename sbig_strdev to
+	sbig_strcam
+
+2014-09-16  Jim Garlick <garlick.jim@gmail.com>
+
+	* COPYING, INSTALL: add COPYING and INSTALL files
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c, src/common/libsbig/sbig.c,
+	src/common/libsbig/sbig.h: rename extended info function
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c: tweak sbig-info binning mode output
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c, src/common/libsbig/sbig.c,
+	src/common/libsbig/sbig.h: add extended ccd info
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/sbig.h: remove dead code
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c, src/common/libsbig/sbig.c,
+	src/common/libsbig/sbig.h: change ccd info params
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c, src/common/libsbig/sbig.c,
+	src/common/libsbig/sbig.h: change establish link params
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c, src/common/libsbig/Makefile.am,
+	src/common/libsbig/sbig.c, src/common/libsbig/sbig.h: change
+	open_device params
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c, src/common/libsbig/Makefile.am,
+	src/common/libsbig/sbig.c, src/common/libsbig/sbig.h,
+	src/common/libutil/Makefile.am, src/common/libutil/bcd.c,
+	src/common/libutil/bcd.h: fix bcd, get driver info working
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/devtab.c, src/common/libsbig/errtab.c,
+	src/common/libsbig/sbig.c, src/common/libsbig/sbig.h,
+	src/common/libsbig/sbigudrv.h: libsbig: tidy up includes
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/Makefile.am, src/common/libsbig/sbigudrv.h: 
+	build: copy sbigudrv.h from sdk
+
+2014-09-23  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c, src/common/libsbig/Makefile.am,
+	src/common/libsbig/devtab.c, src/common/libsbig/errtab.c,
+	src/common/libsbig/sbig.c, src/common/libsbig/sbig.h: get info
+	working a bit better
+
+2014-09-19  Jim Garlick <garlick.jim@gmail.com>
+
+	* configure.ac: build: halt if libusb's usb.h is not found
+
+2014-09-19  Demo User <debian@beaglebone.(none)>
+
+	* src/cmd/sbig-info.c: sbig-info: improve command structure
+
+2014-09-18  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libsbig/errtab.c: add missing errtab.c
+
+2014-09-18  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/common/libutil/log.c: libutil: update license header in log.c
+
+2014-09-18  Jim Garlick <garlick.jim@gmail.com>
+
+	* src/cmd/sbig-info.c, src/common/libsbig/sbig.c,
+	src/common/libsbig/sbig.h: sbig-info: show driver info
+
+2014-09-18  Jim Garlick <garlick.jim@gmail.com>
+
+	* configure.ac, src/cmd/Makefile.am: build: properly find -lm
+
+2014-09-18  Jim Garlick <garlick.jim@gmail.com>
+
+	* config/install-sh, config/x_ac_check_cond_lib.m4,
+	config/x_ac_expand_install_dirs.m4, configure.ac,
+	src/cmd/Makefile.am, src/cmd/sbig-info.c, src/cmd/sbig.c,
+	src/common/Makefile.am, src/common/libsbig/Makefile.am,
+	src/common/libsbig/sbig.c, src/common/libsbig/sbig.h,
+	src/common/libutil/Makefile.am, src/common/libutil/log.c,
+	src/common/libutil/log.h, src/common/libutil/xzmalloc.c,
+	src/common/libutil/xzmalloc.h: libutil: pull in useful stuff for cmd
+	building
+
+2014-09-16  Jim Garlick <garlick.jim@gmail.com>
+
+	* Makefile.am, src/cmd/Makefile.am, src/cmd/sbig-info.c,
+	src/cmd/sbig.c, src/common/libsbig/Makefile.am,
+	src/common/libsbig/sbig.c, src/common/libsbig/sbig.h: cmd: add sbig
+	command driver
+
+2014-09-16  Jim Garlick <garlick.jim@gmail.com>
+
+	* Makefile.am: build: add install rule for libsbigudrv.so
+
+2014-09-15  Garlick <garlick1@saratoga.llnl.gov>
+
+	* configure.ac: build: define sdk_libdir, sdk_includedir Detect architecture and select appropriate SDK directories.
+
+2014-09-15  Garlick <garlick1@saratoga.llnl.gov>
+
+	* AUTHORS, META, Makefile.am, NEWS, README, autogen.sh,
+	config/x_ac_meta.m4, configure.ac, src/Makefile.am,
+	src/cmd/Makefile.am, src/common/Makefile.am,
+	src/common/libsbig/Makefile.am: Add autoconf infrastructure
+
+2014-09-14  Garlick <garlick1@saratoga.llnl.gov>
+
+	* : stop tracking extraneous files
+
+2014-09-14  Garlick <garlick1@saratoga.llnl.gov>
+
+	* README.md: README: fix typo
+
+2014-09-14  Garlick <garlick1@saratoga.llnl.gov>
+
+	* README.md: README: add how to run SDK testmain
+
+2014-09-14  Garlick <garlick1@saratoga.llnl.gov>
+
+	* README.md: fix markup errors
+
+2014-09-14  Garlick <garlick1@saratoga.llnl.gov>
+
+	* README.md: created README for the project
+
+2014-09-14  Garlick <garlick1@saratoga.llnl.gov>
+
+	* add newest SDK from ftp.sbig.com/pub/devsw
+
